@@ -4,5 +4,5 @@ stages:
 - update-manifest
 
 include:
-- local: .gitlab-ci/api-gateway.yml
+- local: gitlab-ci/api-gateway.yml
 
