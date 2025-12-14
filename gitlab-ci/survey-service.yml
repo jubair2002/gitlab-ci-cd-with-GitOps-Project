@@ -32,7 +32,7 @@ push_survey_service:
 
 update-manifest:
   stage: update-manifest
-  <<: *auth_service_rules
+  <<: *survey_service_rules
   script:
     - echo "Updating manifest"
     - rm -rf microservice-manifest-repo
