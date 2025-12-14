@@ -1,23 +1,39 @@
+.api_gateway_rules: &api_gateway_rules
+  rules:
+    - changes:
+        - api-gateway/**/*
+      when: always
+    - when: never
+
+stages:
+  - build
+  - push
+  - update-manifest
+
 variables:
   SERVICE_NAME: api-gateway
-  IMAGE_NAME: jubair2002/api-gateway
+  IMAGES_NAME: jubair2002/api-gateway
   IMAGE_TAG: $CI_COMMIT_SHA
 
 build_api-gateway:
   stage: build
+  <<: *api_gateway_rules
   script:
     - echo "Building $SERVICE_NAME Docker image..."
-    - docker build -t $IMAGE_NAME:$IMAGE_TAG api-gateway
+    - docker build -t $IMAGES_NAME:$IMAGE_TAG api-gateway
 
 push_api-gateway:
   stage: push
+  <<: *api_gateway_rules
   script:
     - echo "Pushing $SERVICE_NAME Docker image to registry..."
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $IMAGES_NAME:$IMAGE_TAG
 
-update_api_gateway_manifest:
+update-manifest:
   stage: update-manifest
+  image: mikefarah/yq:latest
+  <<: *api_gateway_rules
   script:
     - echo "Updating manifest"
     - rm -rf microservice-manifest-repo
