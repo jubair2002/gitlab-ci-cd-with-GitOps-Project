@@ -5,4 +5,9 @@ stages:
 
 include:
 - local: gitlab-ci/api-gateway.yml
+- local: gitlab-ci/frontend.yml
+- local: gitlab-ci/user-service.yml
+- local: gitlab-ci/survey-service.yml
+- local: gitlab-ci/auth-service.yml
+- local: gitlab-ci/payment-service.yml
 
