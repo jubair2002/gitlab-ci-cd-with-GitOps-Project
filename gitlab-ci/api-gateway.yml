@@ -34,7 +34,7 @@ update-manifest:
   stage: update-manifest
   <<: *api_gateway_rules
   script:
-    - echo "Updating manifest"
+    - echo "Updating manifest files"
     - rm -rf microservice-manifest-repo
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
     - cd microservice-manifest-repo/k8s-manifests
