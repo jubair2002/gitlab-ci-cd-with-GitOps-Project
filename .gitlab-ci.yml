@@ -1,8 +1,8 @@
 stages:
-- build
-- push
-- update-manifest
+  - test
 
-include:
-- local: .gitlab-ci/api-gateway.yml
+hello_world:
+  stage: test
+  script:
+    - echo "Hello World from GitLab CI!"
 
