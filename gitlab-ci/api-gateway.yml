@@ -1,0 +1,17 @@
+variables:
+  SERVICE_NAME: api-gateway
+  IMAGE_NAME: jubair2002/api-gateway
+  IMAGE_TAG: $CI_COMMIT_SHA
+
+build_api-gateway:
+  stage: build
+  script:
+    - echo "Building $SERVICE_NAME Docker image..."
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG api-gateway
+
+push_api-gateway:
+  stage: push
+  script:
+    - echo "Pushing $SERVICE_NAME Docker image to registry..."
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - docker push $IMAGE_NAME:$IMAGE_TAG
