@@ -36,7 +36,7 @@ update-manifest:
   script:
     - echo "Updating manifest"
     - rm -rf microservice-manifest-repo
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
     - cd microservice-manifest-repo/k8s-manifests
     - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i apiGateway-deploy-svc.yml
     - git config user.email "ci@gitlab.com"
