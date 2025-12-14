@@ -32,7 +32,6 @@ push_api-gateway:
 
 update-manifest:
   stage: update-manifest
-  image: mikefarah/yq:latest
   <<: *api_gateway_rules
   script:
     - echo "Updating manifest"
