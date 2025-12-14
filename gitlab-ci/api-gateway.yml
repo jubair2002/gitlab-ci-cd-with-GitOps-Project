@@ -26,7 +26,7 @@ push_api-gateway:
   stage: push
   <<: *api_gateway_rules
   script:
-    - echo "Pushing $SERVICE_NAME Docker image to registry..."
+    - echo "Pushing $SERVICE_NAME Docker image to registry....."
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $IMAGES_NAME:$IMAGE_TAG
 
