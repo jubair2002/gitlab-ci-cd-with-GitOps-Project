@@ -30,7 +30,7 @@ push_frontend:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $IMAGES_NAME:$IMAGE_TAG
 
-update-manifest:
+update-frontend-manifest:
   stage: update-manifest
   <<: *frontend_rules
   script:

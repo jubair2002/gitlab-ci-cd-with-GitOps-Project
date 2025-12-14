@@ -30,7 +30,7 @@ push_payment_service:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $IMAGES_NAME:$IMAGE_TAG
 
-update-manifest:
+update-payment-manifest:
   stage: update-manifest
   <<: *payment_service_rules
   script:

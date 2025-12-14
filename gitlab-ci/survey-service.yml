@@ -30,7 +30,7 @@ push_survey_service:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $IMAGES_NAME:$IMAGE_TAG
 
-update-manifest:
+update-survey-manifest:
   stage: update-manifest
   <<: *survey_service_rules
   script:

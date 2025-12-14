@@ -30,7 +30,7 @@ push_user_service:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $IMAGES_NAME:$IMAGE_TAG
 
-update-manifest:
+update-user-manifest:
   stage: update-manifest
   <<: *user_service_rules
   script:
