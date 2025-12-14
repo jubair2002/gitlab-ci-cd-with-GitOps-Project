@@ -1,0 +1,8 @@
+stages:
+- build
+- push
+- update-manifest
+
+include:
+- local: .gitlab-ci/api-gateway.yml
+

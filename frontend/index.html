@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #1a202c;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tabs button {
+            padding: 12px 24px;
+            border: none;
+            background: #e2e8f0;
+            color: #4a5568;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-tabs button:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        
+        .nav-tabs button.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .content {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .service-card {
+            background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .service-card p {
+            opacity: 0.9;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loader {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+        
+        .loader::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #c00;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        tr:hover {
+            background: #f7fafc;
+        }
+        
+        .profile-card {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .profile-card h4 {
+            color: #2d3748;
+            margin-bottom: 0.8rem;
+        }
+        
+        .profile-card p {
+            color: #4a5568;
+            margin-bottom: 0.4rem;
+        }
+        
+        .survey-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .survey-card h4 {
+            color: #1565c0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .survey-card p {
+            color: #424242;
+        }
+        
+        .survey-card small {
+            color: #616161;
+        }
+        
+        .link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .link:hover {
+            text-decoration: underline;
+        }
+        
+        h2 {
+            color: #1a202c;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        h3 {
+            color: #2d3748;
+            font-size: 1.4rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Microservices Dashboard</h1>
+            <div class="nav-tabs">
+                <button onclick="navigateToPage('home')" class="active">
+                    🏠 Home
+                </button>
+                <button onclick="navigateToPage('auth')">
+                    🔐 Auth
+                </button>
+                <button onclick="navigateToPage('user')">
+                    👤 User
+                </button>
+                <button onclick="navigateToPage('survey')">
+                    📊 Survey
+                </button>
+                <button onclick="navigateToPage('payment')">
+                    💳 Payment
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="home" class="page active">
+                <h2>🚀 Welcome to Microservices Dashboard</h2>
+                <p style="color: #718096; font-size: 1.1rem;">Select a service to view its data and status.</p>
+                
+                <div class="service-grid">
+                    <div class="service-card" style="--card-color-1: #667eea; --card-color-2: #764ba2;" onclick="navigateToPage('auth')">
+                        <h3>🔐 Auth Service</h3>
+                        <p>User authentication and authorization management</p>
+                    </div>
+                    <div class="service-card" style="--card-color-1: #f093fb; --card-color-2: #f5576c;" onclick="navigateToPage('user')">
+                        <h3>👤 User Service</h3>
+                        <p>User profiles and personal information</p>
+                    </div>
+                    <div class="service-card" style="--card-color-1: #4facfe; --card-color-2: #00f2fe;" onclick="navigateToPage('survey')">
+                        <h3>📊 Survey Service</h3>
+                        <p>Surveys creation and response management</p>
+                    </div>
+                    <div class="service-card" style="--card-color-1: #43e97b; --card-color-2: #38f9d7;" onclick="navigateToPage('payment')">
+                        <h3>💳 Payment Service</h3>
+                        <p>Payment processing and transaction history</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="auth" class="page">
+                <h2>🔐 Auth Service</h2>
+                <div id="auth-status"></div>
+                <p style="margin: 1rem 0;">Direct endpoint: <a href="/api/auth" target="_blank" class="link">/api/auth</a></p>
+                <div id="auth-content" class="loader"></div>
+            </div>
+
+            <div id="user" class="page">
+                <h2>👤 User Service</h2>
+                <div id="user-status"></div>
+                <p style="margin: 1rem 0;">Direct endpoint: <a href="/api/user" target="_blank" class="link">/api/user</a></p>
+                <div id="user-content" class="loader"></div>
+            </div>
+
+            <div id="survey" class="page">
+                <h2>📊 Survey Service</h2>
+                <div id="survey-status"></div>
+                <p style="margin: 1rem 0;">Direct endpoint: <a href="/api/survey" target="_blank" class="link">/api/survey</a></p>
+                <div id="survey-content" class="loader"></div>
+            </div>
+
+            <div id="payment" class="page">
+                <h2>💳 Payment Service</h2>
+                <div id="payment-status"></div>
+                <p style="margin: 1rem 0;">Direct endpoint: <a href="/api/payment" target="_blank" class="link">/api/payment</a></p>
+                <div id="payment-content" class="loader"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // Initialize routing on page load
+        window.addEventListener('load', () => {
+            const path = window.location.pathname;
+            const match = path.match(/\/api\/(auth|user|survey|payment)/);
+            if (match) {
+                showPage(match[1]);
+            } else {
+                showPage('home');
+            }
+        });
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page) {
+                showPage(event.state.page, false);
+            }
+        });
+
+        function navigateToPage(page) {
+            showPage(page, true);
+        }
+
+        function showPage(page, updateHistory = true) {
+            // Update active page and button
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(page).classList.add('active');
+            
+            const buttons = document.querySelectorAll('.nav-tabs button');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(page.toLowerCase())) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update URL based on page
+            let newUrl;
+            if (page === 'home') {
+                newUrl = '/';
+            } else {
+                newUrl = `/api/${page}`;
+            }
+            
+            if (updateHistory) {
+                window.history.pushState({ page: page }, '', newUrl);
+            }
+            
+            // Load data for service pages
+            if (page !== 'home') {
+                loadPageData(page);
+            }
+        }
+
+        async function loadPageData(page) {
+            const contentDiv = document.getElementById(`${page}-content`);
+            const statusDiv = document.getElementById(`${page}-status`);
+            
+            contentDiv.innerHTML = '<div class="loader"></div>';
+            statusDiv.innerHTML = '';
+            
+            try {
+                let data;
+                let endpoint;
+                
+                if (page === 'auth') {
+                    endpoint = '/api/auth/users';
+                } else if (page === 'user') {
+                    endpoint = '/api/user/profiles';
+                } else if (page === 'survey') {
+                    endpoint = '/api/survey/surveys';
+                } else if (page === 'payment') {
+                    endpoint = '/api/payment/payments';
+                } else {
+                    throw new Error("Invalid page for data loading.");
+                }
+                
+                // Add timeout to prevent infinite loading
+                data = await Promise.race([
+                    fetchData(endpoint),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Request timeout (10s)')), 10000)
+                    )
+                ]);
+                
+                if (page === 'auth') {
+                    displayAuthData(contentDiv, data);
+                } else if (page === 'user') {
+                    displayUserData(contentDiv, data);
+                } else if (page === 'survey') {
+                    displaySurveyData(contentDiv, data);
+                } else if (page === 'payment') {
+                    displayPaymentData(contentDiv, data);
+                }
+                
+                statusDiv.innerHTML = '<div class="status-badge status-active">✅ Service Active</div>';
+            } catch (initialError) {
+                try {
+                    const rootEndpoint = `/api/${page}`;
+                    const statusCheck = await Promise.race([
+                        fetchData(rootEndpoint),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout (10s)')), 10000)
+                        )
+                    ]);
+                    
+                    contentDiv.innerHTML = `<div class="error">Data Endpoint Error: ${initialError.message}</div>
+                                            <p style="margin-top: 1rem;"><strong>Root Check Success:</strong> The service is responding on <a href="${rootEndpoint}" target="_blank" class="link">${rootEndpoint}</a></p>
+                                            <pre style="background: #f7fafc; padding: 1rem; border-radius: 8px; margin-top: 1rem; overflow-x: auto;">${JSON.stringify(statusCheck, null, 2)}</pre>`;
+                    statusDiv.innerHTML = '<div class="status-badge status-warning">⚠️ Partial Service</div>';
+                } catch (rootError) {
+                    contentDiv.innerHTML = `<div class="error"><strong>Service Unreachable:</strong> ${rootError.message}</div>
+                                            <div style="background: #f7fafc; padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+                                                <h4 style="margin-bottom: 1rem;">Troubleshooting Steps:</h4>
+                                                <ol style="padding-left: 1.5rem; line-height: 1.8;">
+                                                    <li>Ensure your backend services are running: <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">python run.py</code></li>
+                                                    <li>Check if the service is listening on the correct port</li>
+                                                    <li>Verify the API endpoint exists: <a href="${API_BASE}/api/${page}" target="_blank" class="link">${API_BASE}/api/${page}</a></li>
+                                                    <li>Check browser console for detailed error messages (F12)</li>
+                                                </ol>
+                                            </div>`;
+                    statusDiv.innerHTML = '<div class="status-badge status-error">❌ Service Offline</div>';
+                }
+            }
+        }
+
+        async function fetchData(endpoint) {
+            const response = await fetch(API_BASE + endpoint);
+            if (!response.ok) {
+                let errorDetail = response.statusText;
+                try {
+                    const errorJson = await response.json();
+                    errorDetail = errorJson.error || errorJson.detail || errorDetail;
+                } catch (e) {}
+                throw new Error(`HTTP ${response.status}: ${errorDetail}`);
+            }
+            return await response.json();
+        }
+
+        function displayAuthData(container, data) {
+            // Clear any existing content including loaders
+            container.innerHTML = '';
+            
+            if (!data.users || data.users.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No users found in the Auth Service.</p>';
+                return;
+            }
+            
+            let html = `<h3>Registered Users (${data.users.length})</h3>`;
+            html += '<table><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Created</th></tr></thead><tbody>';
+            
+            data.users.forEach(user => {
+                html += `<tr>
+                    <td>${user.id || 'N/A'}</td>
+                    <td>${user.username || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${new Date(user.created_at || Date.now()).toLocaleDateString()}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function displayUserData(container, data) {
+            if (!data.profiles || data.profiles.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No profiles found in the User Service.</p>';
+                return;
+            }
+            
+            let html = `<h3>User Profiles (${data.profiles.length})</h3>`;
+            
+            data.profiles.forEach(profile => {
+                html += `<div class="profile-card">
+                    <h4>${profile.full_name || 'N/A'}</h4>
+                    <p><strong>User ID:</strong> ${profile.user_id || 'N/A'}</p>
+                    <p><strong>Phone:</strong> ${profile.phone || 'N/A'}</p>
+                    <p><strong>Address:</strong> ${profile.address || 'N/A'}</p>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function displaySurveyData(container, data) {
+            if (!data.surveys || data.surveys.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No surveys found in the Survey Service.</p>';
+                return;
+            }
+            
+            let html = `<h3>Surveys (${data.surveys.length})</h3>`;
+            
+            data.surveys.forEach(survey => {
+                html += `<div class="survey-card">
+                    <h4>${survey.title || 'N/A'}</h4>
+                    <p>${survey.description || 'N/A'}</p>
+                    <small>Created: ${new Date(survey.created_at || Date.now()).toLocaleDateString()}</small>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function displayPaymentData(container, data) {
+            if (!data.payments || data.payments.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No payments found in the Payment Service.</p>';
+                return;
+            }
+            
+            let html = `<h3>Payments (${data.payments.length})</h3>`;
+            html += '<table><thead><tr><th>ID</th><th>User ID</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>';
+            
+            data.payments.forEach(payment => {
+                html += `<tr>
+                    <td>${payment.id || 'N/A'}</td>
+                    <td>${payment.user_id || 'N/A'}</td>
+                    <td>$${payment.amount || '0.00'}</td>
+                    <td>${payment.status || 'N/A'}</td>
+                    <td>${new Date(payment.created_at || Date.now()).toLocaleDateString()}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

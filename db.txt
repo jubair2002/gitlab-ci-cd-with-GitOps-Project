@@ -1,0 +1,102 @@
+CREATE DATABASE IF NOT EXISTS microservices_app_db;
+USE microservices_app_db;
+
+-- Auth Service Tables
+CREATE TABLE auth_users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email)
+);
+
+CREATE TABLE auth_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(191) UNIQUE NOT NULL,  -- Fixed: 191 for index compatibility
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+    INDEX idx_token (token),
+    INDEX idx_user_id (user_id),
+    INDEX idx_expires_at (expires_at)
+);
+
+-- User Service Tables
+CREATE TABLE user_profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNIQUE NOT NULL,
+    full_name VARCHAR(200),
+    phone VARCHAR(20),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id)
+);
+
+-- Survey Service Tables
+CREATE TABLE surveys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    created_by INT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES auth_users(id),
+    INDEX idx_created_by (created_by),
+    INDEX idx_created_at (created_at)
+);
+
+CREATE TABLE survey_responses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    survey_id INT NOT NULL,
+    user_id INT NOT NULL,
+    response_data JSON,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (survey_id) REFERENCES surveys(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id),
+    UNIQUE KEY unique_survey_user (survey_id, user_id),
+    INDEX idx_survey_id (survey_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_submitted_at (submitted_at)
+);
+
+-- Payment Service Tables
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'USD',
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+    payment_method VARCHAR(50),
+    transaction_id VARCHAR(191) UNIQUE,  -- Fixed: 191 for index compatibility
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_transaction_id (transaction_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- Insert sample data
+INSERT INTO auth_users (username, email, password_hash) VALUES 
+('demo_user', 'demo@example.com', 'hashed_password_123'),
+('test_user', 'test@example.com', 'hashed_password_456');
+
+INSERT INTO user_profiles (user_id, full_name, phone, address) VALUES 
+(1, 'Demo User', '+1234567890', '123 Demo Street'),
+(2, 'Test User', '+0987654321', '456 Test Avenue');
+
+INSERT INTO surveys (title, description, created_by) VALUES 
+('Customer Satisfaction Survey', 'Help us improve our services', 1),
+('Product Feedback', 'Share your thoughts on our products', 1);
+
+INSERT INTO payments (user_id, amount, currency, status, payment_method, transaction_id) VALUES 
+(1, 99.99, 'USD', 'completed', 'credit_card', 'TXN001'),
+(2, 49.99, 'USD', 'pending', 'paypal', 'TXN002');
