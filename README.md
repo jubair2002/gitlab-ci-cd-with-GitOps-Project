@@ -132,7 +132,7 @@ ArgoCD continuously monitors the manifest repository and automatically syncs cha
 ## 📊 Diagrams
 
 ### Pipeline Workflow
-![Pipeline Workflow](diagram-images/pipeline-workflow.png)
+![Pipeline Workflow](diagram-images/archi-diagram.png)
 
 This diagram shows the full pipeline workflow and how it works.
 
