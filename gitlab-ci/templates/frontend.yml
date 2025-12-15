@@ -1,0 +1,47 @@
+.frontend_rules: &frontend_rules
+  rules:
+    - changes:
+        - frontend/**/*
+      when: always
+    - when: never
+
+stages:
+  - build
+  - push
+  - update-manifest
+
+variables:
+  SERVICE_NAME: frontend
+  IMAGES_NAME: jubair2002/frontend
+  IMAGE_TAG: $CI_COMMIT_SHA
+
+build_frontend:
+  stage: build
+  <<: *frontend_rules
+  script:
+    - echo "Building $SERVICE_NAME Docker image..."
+    - docker build -t $IMAGES_NAME:$IMAGE_TAG frontend
+
+push_frontend:
+  stage: push
+  <<: *frontend_rules
+  script:
+    - echo "Pushing $SERVICE_NAME Docker image to registry....."
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - docker push $IMAGES_NAME:$IMAGE_TAG
+
+update-frontend-manifest:
+  stage: update-manifest
+  <<: *frontend_rules
+  script:
+    - echo "Updating manifest"
+    - rm -rf microservice-manifest-repo
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - cd microservice-manifest-repo/k8s-manifests
+    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i frontend-deploy-svc.yml
+    - git config user.email "ci@gitlab.com"
+    - git config user.name "GitLab CI"
+    - git add frontend-deploy-svc.yml
+    - git commit -m "Update fronted image to $IMAGE_TAG"
+    - git push origin main
+

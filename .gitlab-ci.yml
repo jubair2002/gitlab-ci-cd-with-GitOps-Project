@@ -4,10 +4,10 @@ stages:
 - update-manifest
 
 include:
-- local: gitlab-ci/api-gateway.yml
-- local: gitlab-ci/frontend.yml
-- local: gitlab-ci/user-service.yml
-- local: gitlab-ci/survey-service.yml
-- local: gitlab-ci/auth-service.yml
-- local: gitlab-ci/payment-service.yml
+- local: gitlab-ci/templates/api-gateway.yml
+- local: gitlab-ci/templates/frontend.yml
+- local: gitlab-ci/templates/user-service.yml
+- local: gitlab-ci/templates/survey-service.yml
+- local: gitlab-ci/templates/auth-service.yml
+- local: gitlab-ci/templates/payment-service.yml
 

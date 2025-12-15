@@ -1,0 +1,47 @@
+.auth_service: &auth_service_rules
+  rules:
+    - changes:
+        - auth-service/**/*
+      when: always
+    - when: never
+
+stages:
+  - build
+  - push
+  - update-manifest
+
+variables:
+  SERVICE_NAME: auth-service
+  IMAGES_NAME: jubair2002/auth-service
+  IMAGE_TAG: $CI_COMMIT_SHA
+
+build_auth_service:
+  stage: build
+  <<: *auth_service_rules
+  script:
+    - echo "Building $SERVICE_NAME Docker image..."
+    - docker build -t $IMAGES_NAME:$IMAGE_TAG auth-service
+
+push_auth_service:
+  stage: push
+  <<: *auth_service_rules
+  script:
+    - echo "Pushing $SERVICE_NAME Docker image to registry....."
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - docker push $IMAGES_NAME:$IMAGE_TAG
+
+update-auth-manifest:
+  stage: update-manifest
+  <<: *auth_service_rules
+  script:
+    - echo "Updating manifest"
+    - rm -rf microservice-manifest-repo
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - cd microservice-manifest-repo/k8s-manifests
+    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i auth-deploy-svc.yml
+    - git config user.email "ci@gitlab.com"
+    - git config user.name "GitLab CI"
+    - git add auth-deploy-svc.yml
+    - git commit -m "Update user service image to $IMAGE_TAG"
+    - git push origin main
+
