@@ -59,10 +59,6 @@ rules:
   - when: never
 ```
 
-### Pipeline Visualization
-
-![GitLab CI Pipeline](diagram-images/gitlab-ci-pipeline-view.png)
-
 ## 🔄 GitOps Workflow
 
 This project implements a **GitOps** deployment strategy using a **declarative approach**:
