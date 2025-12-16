@@ -9,20 +9,25 @@ build_frontend:
   stage: build
   <<: *frontend_rules
   script:
-    - echo "Building frontend Docker image..."
-    - docker build -t jubair2002/frontend:$CI_COMMIT_SHA frontend
+    - docker rmi jubair2002/frontend:$CI_COMMIT_SHA 2>/dev/null || true
+    - docker build --no-cache -t jubair2002/frontend:$CI_COMMIT_SHA frontend
+    - docker images jubair2002/frontend:$CI_COMMIT_SHA
 
 push_frontend:
   stage: push
   <<: *frontend_rules
+  dependencies:
+    - build_frontend
   script:
-    - echo "Pushing frontend Docker image to registry....."
+    - docker images | grep "jubair2002/frontend" | grep "$CI_COMMIT_SHA" || (echo "ERROR: Frontend image not found!" && exit 1)
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push jubair2002/frontend:$CI_COMMIT_SHA
 
 update-frontend-manifest:
   stage: update-manifest
   <<: *frontend_rules
+  dependencies:
+    - push_frontend
   script:
     - echo "Updating manifest"
     - rm -rf microservice-manifest-repo
