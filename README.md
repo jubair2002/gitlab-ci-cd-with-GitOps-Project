@@ -194,3 +194,5 @@ This project is for demonstration purposes.
 
 **⭐ If you find this project helpful, please give it a star!**
 
+code repo : https://gitlab.com/public-project8832250/microservice-code-repo.git
+manifest repo : https://gitlab.com/public-project8832250/microservice-manifest-repo.git
