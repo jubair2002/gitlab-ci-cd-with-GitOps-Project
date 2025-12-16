@@ -63,7 +63,6 @@ def login():
         user = cursor.fetchone()
         
         if user:
-            # Generate token
             token = secrets.token_urlsafe(32)
             expires_at = datetime.now() + timedelta(hours=24)
             
