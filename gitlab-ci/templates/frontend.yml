@@ -1,4 +1,4 @@
-.frontend_rules: &frontend_rules
+frontend_rules: &frontend_rules
   rules:
     - changes:
         - frontend/**/*
@@ -9,32 +9,23 @@ build_frontend:
   stage: build
   <<: *frontend_rules
   script:
-    - docker rmi jubair2002/frontend:$CI_COMMIT_SHA 2>/dev/null || true
-    - docker build --no-cache -t jubair2002/frontend:$CI_COMMIT_SHA frontend
-    - docker images jubair2002/frontend:$CI_COMMIT_SHA
+    - docker images "jubair2002/frontend*" -q | xargs -r docker rmi -f
+    - docker build --no-cache -t jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA frontend
 
 push_frontend:
   stage: push
   <<: *frontend_rules
-  dependencies:
-    - build_frontend
   script:
-    - docker images | grep "jubair2002/frontend" | grep "$CI_COMMIT_SHA" || (echo "ERROR: Frontend image not found!" && exit 1)
+    - docker image inspect jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push jubair2002/frontend:$CI_COMMIT_SHA
+    - docker push jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA
 
 update-frontend-manifest:
   stage: update-manifest
   <<: *frontend_rules
   script:
-    - echo "Updating manifest"
-    - rm -rf microservice-manifest-repo
-    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/frontend:$CI_COMMIT_SHA\"" -i frontend-deploy-svc.yml
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - git add frontend-deploy-svc.yml
-    - git commit -m "Update frontend image to $CI_COMMIT_SHA"
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA\"" -i frontend-deploy-svc.yml
+    - git commit -am "Update frontend image"
     - git push origin main
-
