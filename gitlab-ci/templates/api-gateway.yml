@@ -5,11 +5,6 @@
       when: always
     - when: never
 
-stages:
-  - build
-  - push
-  - update-manifest
-
 variables:
   SERVICE_NAME: api-gateway
   IMAGES_NAME: jubair2002/api-gateway
@@ -34,14 +29,14 @@ update-api-gateway-manifest:
   stage: update-manifest
   <<: *api_gateway_rules
   script:
-    - echo "Updating manifest"
+    - echo "Updating manifest for $SERVICE_NAME"
     - rm -rf microservice-manifest-repo
     - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i apiGateway-deploy-svc.yml
+    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i $MANIFEST_FILE
     - git config user.email "ci@gitlab.com"
     - git config user.name "GitLab CI"
-    - git add apiGateway-deploy-svc.yml
+    - git add $MANIFEST_FILE
     - git commit -m "Update api Gateway image to $IMAGE_TAG"
     - git push origin main
 

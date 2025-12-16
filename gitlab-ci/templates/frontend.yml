@@ -5,11 +5,6 @@
       when: always
     - when: never
 
-stages:
-  - build
-  - push
-  - update-manifest
-
 variables:
   SERVICE_NAME: frontend
   IMAGES_NAME: jubair2002/frontend
@@ -42,6 +37,6 @@ update-frontend-manifest:
     - git config user.email "ci@gitlab.com"
     - git config user.name "GitLab CI"
     - git add frontend-deploy-svc.yml
-    - git commit -m "Update fronted image to $IMAGE_TAG"
+    - git commit -m "Update frontend image to $IMAGE_TAG"
     - git push origin main
 

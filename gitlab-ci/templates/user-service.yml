@@ -4,12 +4,7 @@
         - user-service/**/*
       when: always
     - when: never
-
-stages:
-  - build
-  - push
-  - update-manifest
-
+    
 variables:
   SERVICE_NAME: user-service
   IMAGES_NAME: jubair2002/user-service
