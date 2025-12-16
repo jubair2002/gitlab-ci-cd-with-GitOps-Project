@@ -26,8 +26,6 @@ push_frontend:
 update-frontend-manifest:
   stage: update-manifest
   <<: *frontend_rules
-  dependencies:
-    - push_frontend
   script:
     - echo "Updating manifest"
     - rm -rf microservice-manifest-repo
