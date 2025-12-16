@@ -5,25 +5,20 @@
       when: always
     - when: never
 
-variables:
-  SERVICE_NAME: frontend
-  IMAGES_NAME: jubair2002/frontend
-  IMAGE_TAG: $CI_COMMIT_SHA
-
 build_frontend:
   stage: build
   <<: *frontend_rules
   script:
-    - echo "Building $SERVICE_NAME Docker image..."
-    - docker build -t $IMAGES_NAME:$IMAGE_TAG frontend
+    - echo "Building frontend Docker image..."
+    - docker build -t jubair2002/frontend:$CI_COMMIT_SHA frontend
 
 push_frontend:
   stage: push
   <<: *frontend_rules
   script:
-    - echo "Pushing $SERVICE_NAME Docker image to registry....."
+    - echo "Pushing frontend Docker image to registry....."
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push $IMAGES_NAME:$IMAGE_TAG
+    - docker push jubair2002/frontend:$CI_COMMIT_SHA
 
 update-frontend-manifest:
   stage: update-manifest
@@ -33,10 +28,10 @@ update-frontend-manifest:
     - rm -rf microservice-manifest-repo
     - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i frontend-deploy-svc.yml
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/frontend:$CI_COMMIT_SHA\"" -i frontend-deploy-svc.yml
     - git config user.email "ci@gitlab.com"
     - git config user.name "GitLab CI"
     - git add frontend-deploy-svc.yml
-    - git commit -m "Update frontend image to $IMAGE_TAG"
+    - git commit -m "Update frontend image to $CI_COMMIT_SHA"
     - git push origin main
 

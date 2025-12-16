@@ -5,38 +5,33 @@
       when: always
     - when: never
 
-variables:
-  SERVICE_NAME: survey-service
-  IMAGES_NAME: jubair2002/survey-service
-  IMAGE_TAG: $CI_COMMIT_SHA
-
 build_survey_service:
   stage: build
   <<: *survey_service_rules
   script:
-    - echo "Building $SERVICE_NAME Docker image..."
-    - docker build -t $IMAGES_NAME:$IMAGE_TAG survey-service
+    - echo "Building survey-service Docker image..."
+    - docker build -t jubair2002/survey-service:$CI_COMMIT_SHA survey-service
 
 push_survey_service:
   stage: push
   <<: *survey_service_rules
   script:
-    - echo "Pushing $SERVICE_NAME Docker image to registry....."
+    - echo "Pushing survey-service Docker image to registry....."
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push $IMAGES_NAME:$IMAGE_TAG
+    - docker push jubair2002/survey-service:$CI_COMMIT_SHA
 
 update-survey-manifest:
   stage: update-manifest
   <<: *survey_service_rules
   script:
-    - echo "Updating manifest for $SERVICE_NAME"
+    - echo "Updating manifest for survey-service"
     - rm -rf microservice-manifest-repo
     - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i $MANIFEST_FILE
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/survey-service:$CI_COMMIT_SHA\"" -i survey-deploy-svc.yml
     - git config user.email "ci@gitlab.com"
     - git config user.name "GitLab CI"
-    - git add $MANIFEST_FILE
-    - git commit -m "Update survey service image to $IMAGE_TAG"
+    - git add survey-deploy-svc.yml
+    - git commit -m "Update survey service image to $CI_COMMIT_SHA"
     - git push origin main
 

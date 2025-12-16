@@ -5,38 +5,33 @@
       when: always
     - when: never
 
-variables:
-  SERVICE_NAME: payment-service
-  IMAGES_NAME: jubair2002/payment-service
-  IMAGE_TAG: $CI_COMMIT_SHA
-
 build_payment_service:
   stage: build
   <<: *payment_service_rules
   script:
-    - echo "Building $SERVICE_NAME Docker image..."
-    - docker build -t $IMAGES_NAME:$IMAGE_TAG payment-service
+    - echo "Building payment-service Docker image..."
+    - docker build -t jubair2002/payment-service:$CI_COMMIT_SHA payment-service
 
 push_payment_service:
   stage: push
   <<: *payment_service_rules
   script:
-    - echo "Pushing $SERVICE_NAME Docker image to registry....."
+    - echo "Pushing payment-service Docker image to registry....."
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push $IMAGES_NAME:$IMAGE_TAG
+    - docker push jubair2002/payment-service:$CI_COMMIT_SHA
 
 update-payment-manifest:
   stage: update-manifest
   <<: *payment_service_rules
   script:
-    - echo "Updating manifest for $SERVICE_NAME"
+    - echo "Updating manifest for payment-service"
     - rm -rf microservice-manifest-repo
     - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"$IMAGES_NAME:$IMAGE_TAG\"" -i $MANIFEST_FILE
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/payment-service:$CI_COMMIT_SHA\"" -i payment-deploy-svc.yml
     - git config user.email "ci@gitlab.com"
     - git config user.name "GitLab CI"
-    - git add $MANIFEST_FILE
-    - git commit -m "Update payment service image to $IMAGE_TAG"
+    - git add payment-deploy-svc.yml
+    - git commit -m "Update payment service image to $CI_COMMIT_SHA"
     - git push origin main
 
