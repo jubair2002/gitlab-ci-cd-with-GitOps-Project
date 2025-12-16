@@ -9,29 +9,24 @@ build_api-gateway:
   stage: build
   <<: *api_gateway_rules
   script:
-    - echo "Building api-gateway Docker image..."
-    - docker build -t jubair2002/api-gateway:$CI_COMMIT_SHA api-gateway
+    - docker images "jubair2002/api-gateway*" -q | xargs -r docker rmi -f
+    - docker build --no-cache -t jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA api-gateway
 
 push_api-gateway:
   stage: push
   <<: *api_gateway_rules
   script:
-    - echo "Pushing api-gateway Docker image to registry....."
+    - docker image inspect jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push jubair2002/api-gateway:$CI_COMMIT_SHA
+    - docker push jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA
 
 update-api-gateway-manifest:
   stage: update-manifest
   <<: *api_gateway_rules
   script:
-    - echo "Updating manifest for api-gateway"
-    - rm -rf microservice-manifest-repo
-    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/api-gateway:$CI_COMMIT_SHA\"" -i apiGateway-deploy-svc.yml
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - git add apiGateway-deploy-svc.yml
-    - git commit -m "Update api Gateway image to $CI_COMMIT_SHA"
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA\"" -i apiGateway-deploy-svc.yml
+    - git commit -am "Update api gateway image"
     - git push origin main
 

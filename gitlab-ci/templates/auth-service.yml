@@ -9,29 +9,24 @@ build_auth_service:
   stage: build
   <<: *auth_service_rules
   script:
-    - echo "Building auth-service Docker image..."
-    - docker build -t jubair2002/auth-service:$CI_COMMIT_SHA auth-service
+    - docker images "jubair2002/auth-service*" -q | xargs -r docker rmi -f
+    - docker build --no-cache -t jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA auth-service
 
 push_auth_service:
   stage: push
   <<: *auth_service_rules
   script:
-    - echo "Pushing auth-service Docker image to registry....."
+    - docker image inspect jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push jubair2002/auth-service:$CI_COMMIT_SHA
+    - docker push jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA
 
 update-auth-manifest:
   stage: update-manifest
   <<: *auth_service_rules
   script:
-    - echo "Updating manifest for auth-service"
-    - rm -rf microservice-manifest-repo
-    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/auth-service:$CI_COMMIT_SHA\"" -i auth-deploy-svc.yml
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - git add auth-deploy-svc.yml
-    - git commit -m "Update auth service image to $CI_COMMIT_SHA"
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA\"" -i auth-deploy-svc.yml
+    - git commit -am "Update auth service image"
     - git push origin main
 

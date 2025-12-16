@@ -4,34 +4,29 @@
         - user-service/**/*
       when: always
     - when: never
-    
+
 build_user_service:
   stage: build
   <<: *user_service_rules
   script:
-    - echo "Building user-service Docker image..."
-    - docker build -t jubair2002/user-service:$CI_COMMIT_SHA user-service
+    - docker images "jubair2002/user-service*" -q | xargs -r docker rmi -f
+    - docker build --no-cache -t jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA user-service
 
 push_user_service:
   stage: push
   <<: *user_service_rules
   script:
-    - echo "Pushing user-service Docker image to registry....."
+    - docker image inspect jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push jubair2002/user-service:$CI_COMMIT_SHA
+    - docker push jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA
 
 update-user-manifest:
   stage: update-manifest
   <<: *user_service_rules
   script:
-    - echo "Updating manifest"
-    - rm -rf microservice-manifest-repo
-    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git  
+    - git clone https://oauth2:${GITLAB_TOKEN}@gitlab.com/public-project8832250/microservice-manifest-repo.git
     - cd microservice-manifest-repo/k8s-manifests
-    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/user-service:$CI_COMMIT_SHA\"" -i user-deploy-svc.yml
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - git add user-deploy-svc.yml
-    - git commit -m "Update user service image to $CI_COMMIT_SHA"
+    - yq eval ".spec.template.spec.containers[0].image = \"jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA\"" -i user-deploy-svc.yml
+    - git commit -am "Update user service image"
     - git push origin main
 
