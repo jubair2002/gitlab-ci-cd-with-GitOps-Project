@@ -3,17 +3,33 @@ from flask_cors import CORS
 import mysql.connector
 import os
 import json
+from dotenv import load_dotenv
+
+# Load .env from project root (two levels up from src/survey-service/)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
+    db_host = os.getenv('DB_HOST')
+    db_port = os.getenv('DB_PORT')
+    db_user = os.getenv('DB_USER')
+    db_password = os.getenv('DB_PASSWORD')
+    db_name = os.getenv('DB_NAME')
+    
+    # Check if required variables exist (password can be empty string)
+    if not db_host or not db_port or not db_user or db_password is None or not db_name:
+        raise ValueError("Missing required database environment variables: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME")
+    
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        port=int(os.getenv('DB_PORT', 3306)),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'microservices_app_db')
+        host=db_host,
+        port=int(db_port),
+        user=db_user,
+        password=db_password,
+        database=db_name,
+        connection_timeout=5,
+        autocommit=False
     )
 
 @app.route('/')
@@ -52,9 +68,9 @@ def get_surveys():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM surveys ORDER BY created_at DESC")
         surveys = cursor.fetchall()
-        return jsonify({'success': True, 'surveys': surveys}), 200
+        return jsonify({'surveys': surveys}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()
@@ -187,4 +203,7 @@ def get_stats():
             conn.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5003, debug=True)
+    host = os.getenv('SURVEY_SERVICE_HOST', '0.0.0.0')
+    port = int(os.getenv('SURVEY_SERVICE_PORT', '5003'))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host=host, port=port, debug=debug)

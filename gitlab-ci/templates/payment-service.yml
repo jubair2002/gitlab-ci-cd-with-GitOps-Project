@@ -1,7 +1,7 @@
 .payment_service: &payment_service_rules
   rules:
     - changes:
-        - payment-service/**/*
+        - src/payment-service/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_payment_service:
   <<: *payment_service_rules
   script:
     - docker images "jubair2002/payment-service*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/payment-service:payment-service-$CI_COMMIT_SHORT_SHA payment-service
+    - docker build --no-cache -t jubair2002/payment-service:payment-service-$CI_COMMIT_SHORT_SHA src/payment-service
 
 push_payment_service:
   stage: push

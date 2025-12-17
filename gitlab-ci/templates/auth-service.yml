@@ -1,7 +1,7 @@
 .auth_service: &auth_service_rules
   rules:
     - changes:
-        - auth-service/**/*
+        - src/auth-service/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_auth_service:
   <<: *auth_service_rules
   script:
     - docker images "jubair2002/auth-service*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA auth-service
+    - docker build --no-cache -t jubair2002/auth-service:auth-service-$CI_COMMIT_SHORT_SHA src/auth-service
 
 push_auth_service:
   stage: push

@@ -492,7 +492,7 @@
         function displayAuthData(container, data) {
             container.innerHTML = '';
             
-            if (!data.users || data.users.length === 0) {
+            if (!data || !data.users || data.users.length === 0) {
                 container.innerHTML = '<p style="color: #718096;">No users found in the Auth Service.</p>';
                 return;
             }
@@ -514,7 +514,9 @@
         }
 
         function displayUserData(container, data) {
-            if (!data.profiles || data.profiles.length === 0) {
+            container.innerHTML = '';
+            
+            if (!data || !data.profiles || data.profiles.length === 0) {
                 container.innerHTML = '<p style="color: #718096;">No profiles found in the User Service.</p>';
                 return;
             }
@@ -534,7 +536,9 @@
         }
 
         function displaySurveyData(container, data) {
-            if (!data.surveys || data.surveys.length === 0) {
+            container.innerHTML = '';
+            
+            if (!data || !data.surveys || data.surveys.length === 0) {
                 container.innerHTML = '<p style="color: #718096;">No surveys found in the Survey Service.</p>';
                 return;
             }
@@ -553,7 +557,9 @@
         }
 
         function displayPaymentData(container, data) {
-            if (!data.payments || data.payments.length === 0) {
+            container.innerHTML = '';
+            
+            if (!data || !data.payments || data.payments.length === 0) {
                 container.innerHTML = '<p style="color: #718096;">No payments found in the Payment Service.</p>';
                 return;
             }

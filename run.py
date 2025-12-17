@@ -7,11 +7,12 @@ def run_service(service_name, port):
     """Run a microservice by executing 'python app.py' in the service's directory."""
     print(f"🚀 Starting {service_name} on port {port}...")
     
-    # FIX: Use the 'cwd' argument. This is the robust, cross-platform way 
+    # Use the 'cwd' argument. This is the robust, cross-platform way 
     # to execute a command within a specific directory.
     cmd = ["python", "app.py"] 
-    # The command runs 'python app.py' but starts execution inside the 'service_name' folder.
-    process = subprocess.Popen(cmd, cwd=service_name)
+    # The command runs 'python app.py' but starts execution inside the 'src/service_name' folder.
+    service_path = f"src/{service_name}"
+    process = subprocess.Popen(cmd, cwd=service_path)
     return process
 
 def main():
@@ -34,7 +35,7 @@ def main():
             time.sleep(2)  # Wait for service to start
         except Exception as e:
             print(f"❌ Failed to start {service_name}: {e}")
-            print(f"HINT: Ensure the folder '{service_name}' exists at the root level.")
+            print(f"HINT: Ensure the folder 'src/{service_name}' exists.")
             sys.exit(1)
     
     print("⏳ Waiting for services to initialize...")
@@ -43,13 +44,13 @@ def main():
     # Start API Gateway
     print("🌐 Starting API Gateway on port 8000...")
     try:
-        # FIX: Start API Gateway using cwd="api-gateway"
-        gateway_process = subprocess.Popen(["python", "app.py"], cwd="api-gateway")
+        # Start API Gateway using cwd="src/api-gateway"
+        gateway_process = subprocess.Popen(["python", "app.py"], cwd="src/api-gateway")
         processes.append(gateway_process)
     except Exception as e:
         # This catches the WinError 267 if the directory is invalid or missing
         print(f"❌ Failed to start API Gateway: {e}")
-        print("HINT: Ensure the folder 'api-gateway' exists and contains its app.py at the root level.")
+        print("HINT: Ensure the folder 'src/api-gateway' exists and contains its app.py.")
         sys.exit(1)
     
     print("\n✅ All services started!")

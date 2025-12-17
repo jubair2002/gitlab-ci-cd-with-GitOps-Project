@@ -2,17 +2,33 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
 import os
+from dotenv import load_dotenv
+
+# Load .env from project root (two levels up from src/user-service/)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
+    db_host = os.getenv('DB_HOST')
+    db_port = os.getenv('DB_PORT')
+    db_user = os.getenv('DB_USER')
+    db_password = os.getenv('DB_PASSWORD')
+    db_name = os.getenv('DB_NAME')
+    
+    # Check if required variables exist (password can be empty string)
+    if not db_host or not db_port or not db_user or db_password is None or not db_name:
+        raise ValueError("Missing required database environment variables: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME")
+    
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        port=int(os.getenv('DB_PORT', 3306)),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'microservices_app_db')
+        host=db_host,
+        port=int(db_port),
+        user=db_user,
+        password=db_password,
+        database=db_name,
+        connection_timeout=5,
+        autocommit=False
     )
 
 @app.route('/')
@@ -145,9 +161,9 @@ def get_all_profiles():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM user_profiles")
         profiles = cursor.fetchall()
-        return jsonify({'success': True, 'profiles': profiles}), 200
+        return jsonify({'profiles': profiles}), 200
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()
@@ -155,4 +171,7 @@ def get_all_profiles():
             conn.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    host = os.getenv('USER_SERVICE_HOST', '0.0.0.0')
+    port = int(os.getenv('USER_SERVICE_PORT', '5002'))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host=host, port=port, debug=debug)

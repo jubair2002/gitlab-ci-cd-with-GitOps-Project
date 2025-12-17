@@ -1,7 +1,7 @@
 .user_service: &user_service_rules
   rules:
     - changes:
-        - user-service/**/*
+        - src/user-service/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_user_service:
   <<: *user_service_rules
   script:
     - docker images "jubair2002/user-service*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA user-service
+    - docker build --no-cache -t jubair2002/user-service:user-service-$CI_COMMIT_SHORT_SHA src/user-service
 
 push_user_service:
   stage: push

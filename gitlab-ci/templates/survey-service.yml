@@ -1,7 +1,7 @@
 .survey_service: &survey_service_rules
   rules:
     - changes:
-        - survey-service/**/*
+        - src/survey-service/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_survey_service:
   <<: *survey_service_rules
   script:
     - docker images "jubair2002/survey-service*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/survey-service:survey-service-$CI_COMMIT_SHORT_SHA survey-service
+    - docker build --no-cache -t jubair2002/survey-service:survey-service-$CI_COMMIT_SHORT_SHA src/survey-service
 
 push_survey_service:
   stage: push

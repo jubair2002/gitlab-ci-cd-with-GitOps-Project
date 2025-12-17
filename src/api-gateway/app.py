@@ -2,17 +2,26 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import requests
 import os
+from dotenv import load_dotenv
+
+# Load .env from project root (two levels up from src/api-gateway/)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 app = Flask(__name__)
 CORS(app)
 
-# Service URLs
+# Service URLs - all must be set via environment variables
 SERVICE_URLS = {
-    'auth': os.getenv("AUTH_SERVICE_URL", "http://localhost:5001"),
-    'user': os.getenv("USER_SERVICE_URL", "http://localhost:5002"),
-    'survey': os.getenv("SURVEY_SERVICE_URL", "http://localhost:5003"),
-    'payment': os.getenv("PAYMENT_SERVICE_URL", "http://localhost:5004")
+    'auth': os.getenv("AUTH_SERVICE_URL"),
+    'user': os.getenv("USER_SERVICE_URL"),
+    'survey': os.getenv("SURVEY_SERVICE_URL"),
+    'payment': os.getenv("PAYMENT_SERVICE_URL")
 }
+
+# Validate that all service URLs are configured
+missing_services = [name for name, url in SERVICE_URLS.items() if not url]
+if missing_services:
+    raise ValueError(f"Missing required environment variables for services: {', '.join([f'{s.upper()}_SERVICE_URL' for s in missing_services])}")
 
 
 def proxy_request(service_name, subpath=""):
@@ -77,6 +86,7 @@ def serve_home():
     """Serve the main dashboard page."""
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up one level from src/api-gateway/ to src/, then to frontend/
         frontend_path = os.path.join(current_dir, '..', 'frontend', 'index.html')
         frontend_path = os.path.abspath(frontend_path)
         
@@ -88,6 +98,7 @@ def serve_home():
         else:
             return jsonify({
                 'message': 'API Gateway is running but frontend not found',
+                'frontend_path': frontend_path,
                 'available_endpoints': {
                     'gateway_health': '/health',
                     'auth_service': '/api/auth',
@@ -110,9 +121,13 @@ def health():
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting API Gateway on port 8000...")
+    host = os.getenv('API_GATEWAY_HOST', '0.0.0.0')
+    port = int(os.getenv('API_GATEWAY_PORT', '8000'))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"🚀 Starting API Gateway on {host}:{port}...")
     print("📋 Available services:")
     for service, url in SERVICE_URLS.items():
         print(f"   - {service}: {url}")
     
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host=host, port=port, debug=debug)

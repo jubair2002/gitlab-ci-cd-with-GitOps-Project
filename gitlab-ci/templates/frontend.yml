@@ -1,7 +1,7 @@
 .frontend_rules: &frontend_rules
   rules:
     - changes:
-        - frontend/**/*
+        - src/frontend/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_frontend:
   <<: *frontend_rules
   script:
     - docker images "jubair2002/frontend*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA frontend
+    - docker build --no-cache -t jubair2002/frontend:frontend-$CI_COMMIT_SHORT_SHA src/frontend
 
 push_frontend:
   stage: push

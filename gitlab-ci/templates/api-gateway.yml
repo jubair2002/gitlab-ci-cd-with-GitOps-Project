@@ -1,7 +1,7 @@
 .api_gateway_rules: &api_gateway_rules
   rules:
     - changes:
-        - api-gateway/**/*
+        - src/api-gateway/**/*
       when: always
     - when: never
 
@@ -10,7 +10,7 @@ build_api-gateway:
   <<: *api_gateway_rules
   script:
     - docker images "jubair2002/api-gateway*" -q | xargs -r docker rmi -f
-    - docker build --no-cache -t jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA api-gateway
+    - docker build --no-cache -t jubair2002/api-gateway:api-gateway-$CI_COMMIT_SHORT_SHA src/api-gateway
 
 push_api-gateway:
   stage: push
